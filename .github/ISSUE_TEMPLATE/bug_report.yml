@@ -1,0 +1,42 @@
+name: Bug Report
+description: Report a workflow bug, extension bug, or harness regression.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the bug and the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: List the exact commands, prompts, or steps needed to reproduce it.
+      placeholder: |
+        1. Run `pi-harness`
+        2. Use `/agents-team hardening`
+        3. Ask for ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include Pi version, OS, shell, and any relevant provider/model details.
+      placeholder: |
+        Pi:
+        Bun:
+        OS:
+        Shell:
+        Mode: harness | harness-full | chain | chain-full
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or Screenshots
+      description: Paste any relevant terminal output or screenshots.

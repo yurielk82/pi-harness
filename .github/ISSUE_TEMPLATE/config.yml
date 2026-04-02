@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Internal Workflow Discussion
+    url: https://github.com/a-conte/pi-harness/discussions
+    about: Use discussions for open-ended workflow and design conversations.

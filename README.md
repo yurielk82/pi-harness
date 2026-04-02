@@ -2,6 +2,9 @@
 
 Standalone Pi Coding Agent harness for day-to-day coding work.
 
+This repository is private and intended to stay focused on a small, opinionated
+workflow surface rather than a broad extension playground.
+
 This repo extracts the useful orchestration pieces from `pi-vs-claude-code` into a separate, cleaner project:
 - dispatcher-led specialist teams
 - optional sequential chains
@@ -213,6 +216,8 @@ Available chains in [.pi/agents/agent-chain.yaml](/Users/aconte/dev/pi-harness/.
 ```bash
 just typecheck
 ```
+
+CI runs the same typecheck on pushes and pull requests.
 
 ## Repo Layout
 
