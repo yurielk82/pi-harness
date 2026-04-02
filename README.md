@@ -240,6 +240,13 @@ Customize rules by editing `.pi/damage-control-rules.yaml`.
 
 The `cross-agent` extension scans `.claude/`, `.gemini/`, and `.codex/` directories at both the project root and `$HOME` for commands, skills, and agents. Discovered commands are registered as slash commands automatically.
 
+The dispatcher can also switch teams automatically via the `select_team` tool before dispatching work. Current routing intent:
+- `software` for backend, app, service, and platform engineering work
+- `data` for pipelines, warehouse models, SQL transformations, and data contracts
+- `analysis` for metrics, dashboards, experimentation readouts, and analytical SQL
+- `ml-platform` for training, inference, feature pipelines, evaluation, and monitoring
+- `hardening` for risky or security-sensitive work
+
 ## Workflow Layer
 
 This repo now includes a lightweight `gstack`-inspired workflow layer shared by both Pi and Codex.

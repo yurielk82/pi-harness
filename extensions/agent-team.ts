@@ -148,7 +148,7 @@ export default function (pi: ExtensionAPI) {
 
 	function getHarnessTools(): string[] {
 		const available = new Set(pi.getAllTools().map(tool => tool.name));
-		return ["dispatch_agent", "tilldone"].filter(tool => available.has(tool));
+		return ["dispatch_agent", "select_team", "tilldone"].filter(tool => available.has(tool));
 	}
 
 	function getSafetyExtension(cwd: string): string | null {
@@ -255,6 +255,21 @@ export default function (pi: ExtensionAPI) {
 			},
 			{ triggerTurn: false },
 		);
+	}
+
+	function setActiveTeam(teamName: string, ctx: any): { ok: boolean; message: string } {
+		const normalized = teamName.trim();
+		if (!normalized || !teams[normalized]) {
+			const available = Object.keys(teams).join(", ");
+			return { ok: false, message: `Team "${teamName}" not found. Available: ${available}` };
+		}
+
+		activateTeam(normalized);
+		updateWidget();
+		ctx.ui.setStatus("agent-team", `Team: ${normalized} (${agentStates.size})`);
+		const members = Array.from(agentStates.values()).map(s => displayName(s.def.name)).join(", ");
+		postCommandResult("Team Switched", `Active team: ${normalized}\nMembers: ${members}`);
+		return { ok: true, message: `Active team: ${normalized} (${members})` };
 	}
 
 	// ── Grid Rendering ───────────────────────────
@@ -690,6 +705,47 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
+	pi.registerTool({
+		name: "select_team",
+		label: "Select Team",
+		description: "Switch the active specialist team so subsequent dispatches use the right roster for the task type.",
+		parameters: Type.Object({
+			team: Type.String({ description: "Team name from .pi/agents/teams.yaml" }),
+			reason: Type.Optional(Type.String({ description: "Short reason for switching teams" })),
+		}),
+
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+			const { team, reason } = params as { team: string; reason?: string };
+			const result = setActiveTeam(team, ctx);
+			const suffix = reason ? `\nReason: ${reason}` : "";
+			return {
+				content: [{ type: "text", text: `${result.message}${suffix}` }],
+				details: { team, reason: reason || "", ok: result.ok },
+			};
+		},
+
+		renderCall(args, theme) {
+			const team = (args as any).team || "?";
+			const reason = (args as any).reason || "";
+			return new Text(
+				theme.fg("toolTitle", theme.bold("select_team ")) +
+				theme.fg("accent", team) +
+				(reason ? theme.fg("dim", " — ") + theme.fg("muted", reason) : ""),
+				0, 0,
+			);
+		},
+
+		renderResult(result, _options, theme) {
+			const details = result.details as any;
+			const team = details?.team || "?";
+			const ok = !!details?.ok;
+			return new Text(
+				theme.fg(ok ? "success" : "error", `${ok ? "✓" : "✗"} ${team}`),
+				0, 0,
+			);
+		},
+	});
+
 	// ── Commands ─────────────────────────────────
 
 	pi.registerCommand("agents-team", {
@@ -712,12 +768,8 @@ export default function (pi: ExtensionAPI) {
 
 			const idx = options.indexOf(choice);
 			const name = teamNames[idx];
-			activateTeam(name);
-			updateWidget();
-			ctx.ui.setStatus("agent-team", `Team: ${name} (${agentStates.size})`);
-			const members = Array.from(agentStates.values()).map(s => displayName(s.def.name)).join(", ");
-			ctx.ui.notify(`Team: ${name} — ${members}`, "info");
-			postCommandResult("Team Switched", `Active team: ${name}\nMembers: ${members}`);
+			const result = setActiveTeam(name, ctx);
+			ctx.ui.notify(result.message, result.ok ? "info" : "warning");
 		},
 	});
 
@@ -791,6 +843,9 @@ agents using the dispatch_agent tool.
 You may also have workflow-control tools such as tilldone available. Use them to
 plan and track work, but never to bypass delegation.
 
+You may also have a select_team tool. Use it before dispatching when the user's
+task clearly fits a more specialized team than the current one.
+
 ## Active Team: ${activeTeamName}
 Members: ${teamMembers}
 You can ONLY dispatch to agents listed below. Do not attempt to dispatch to agents outside this team.
@@ -798,6 +853,7 @@ You can ONLY dispatch to agents listed below. Do not attempt to dispatch to agen
 ## How to Work
 - Analyze the user's request and break it into clear sub-tasks
 - Create and maintain a task list when tilldone is available
+- Switch teams first when the current team is not the best fit
 - Choose the right agent(s) for each sub-task
 - Dispatch tasks using the dispatch_agent tool
 - Review results and dispatch follow-up agents if needed
@@ -805,6 +861,15 @@ You can ONLY dispatch to agents listed below. Do not attempt to dispatch to agen
 - Prefer scout first when the task is ambiguous or requires codebase discovery
 - Use red-team for risky changes involving secrets, migrations, destructive commands, or security-sensitive behavior
 - Summarize the outcome for the user
+
+## Team Routing Heuristics
+- Use \`software\` for backend services, APIs, app code, refactors, and platform engineering
+- Use \`data\` for data pipelines, SQL models, warehouse changes, transformations, and data contracts
+- Use \`analysis\` for metrics, dashboards, reporting logic, experimentation readouts, and analytical SQL
+- Use \`ml-platform\` for training pipelines, inference systems, feature pipelines, model evaluation, and monitoring
+- Use \`hardening\` for auth, secrets, infra, migrations, deploy risk, or destructive workflows
+- Use \`docs\` when the task is primarily documentation or release-facing documentation
+- Stay on \`default\` or \`fast-path\` only for generic coding tasks that do not need domain specialists
 
 ## Rules
 - NEVER try to read, write, or execute code directly — you have no such tools
