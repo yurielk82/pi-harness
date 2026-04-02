@@ -25,3 +25,4 @@ Use this file for recurring expectations around exploratory analysis and decisio
 ## Notes
 
 - Keep analytical work tied to a concrete decision whenever possible.
+- If the business question is weak, rewrite it before doing deeper analysis.

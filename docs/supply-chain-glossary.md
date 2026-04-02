@@ -28,3 +28,4 @@ Use this file to define the business vocabulary the agents should treat as canon
 
 - Add only terms that matter for actual decisions.
 - Prefer short definitions over textbook explanations.
+- If the meaning is unclear, leave it blank instead of inventing a definition.

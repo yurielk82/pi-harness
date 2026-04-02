@@ -24,3 +24,4 @@ Use this file to define the minimum conditions for shipping work safely.
 ## Notes
 
 - Keep this aligned with `.pi/workflows/review-readiness.md` and `.pi/workflows/release.md`.
+- Use this as a minimum bar, not a place to invent process for its own sake.

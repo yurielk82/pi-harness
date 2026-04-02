@@ -28,3 +28,4 @@ Use this file for how you design, review, and interpret experiments.
 ## Notes
 
 - Use this for A/B tests, quasi-experiments, and operational trials.
+- If experimentation is not mature yet, document the current minimum acceptable bar rather than an aspirational process.

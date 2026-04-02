@@ -26,3 +26,4 @@ Use this file to record the system boundaries the agents should respect.
 
 - Prefer diagrams in linked docs if you already have them.
 - Keep this file focused on boundaries and ownership.
+- If ownership is unclear, record the ambiguity explicitly.

@@ -23,3 +23,4 @@ Use this file to record the most important schemas, invariants, and ownership bo
 
 - Start with the highest-risk tables, events, or model inputs.
 - Link to formal schemas if they already exist elsewhere.
+- If a contract is informal, say so plainly.
