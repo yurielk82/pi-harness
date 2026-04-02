@@ -70,10 +70,6 @@ for name in office-hours plan-eng-review review-readiness ship retro learn; do
 done
 
 echo "==> Codex launcher"
-if command -v codex >/dev/null 2>&1; then
-  ./bin/codex-harness --help >/dev/null
-else
-  echo "codex not installed; skipping codex launcher check"
-fi
+./bin/codex-harness --help >/dev/null
 
 echo "Smoke checks passed."
