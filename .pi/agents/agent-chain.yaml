@@ -95,3 +95,55 @@ hardening-review:
       prompt: "Review this implementation for bugs, regressions, and missing tests:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
     - agent: red-team
       prompt: "Perform an adversarial review of the implementation below. Focus on secrets, destructive commands, injection, rollback hazards, and unsafe defaults:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+
+software-lifecycle:
+  description: "Think, plan, build, review, test, and ship for software engineering work"
+  steps:
+    - agent: lead-software-engineer
+      prompt: "Frame this request like a lead engineer. Clarify system boundaries, architecture, tradeoffs, and the right execution direction:\n\n$INPUT"
+    - agent: planner
+      prompt: "Turn this engineering direction into a concrete implementation plan with risks and sequencing:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: builder
+      prompt: "Implement the approved plan below:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: reviewer
+      prompt: "Review this implementation for bugs, regressions, code quality, and missing tests:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: tester
+      prompt: "Validate the implemented behavior. Run relevant checks, probe edge cases, and report evidence:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: release-manager
+      prompt: "Assess ship readiness. Summarize the change, release risks, rollout guidance, and rollback plan:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+
+data-lifecycle:
+  description: "Think, plan, build, review, test, and ship for data science, analytics, and data engineering work"
+  steps:
+    - agent: lead-data-scientist
+      prompt: "Frame this request like a lead data scientist. Clarify objective, metrics, assumptions, data risks, and the right execution direction:\n\n$INPUT"
+    - agent: planner
+      prompt: "Turn this analytical direction into a concrete implementation plan with risks and sequencing:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: builder
+      prompt: "Implement the approved plan below:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: reviewer
+      prompt: "Review this implementation for bugs, regressions, code quality, and missing tests:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: tester
+      prompt: "Validate the implemented behavior, queries, analysis flow, or data outputs. Run relevant checks and report evidence:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: release-manager
+      prompt: "Assess ship readiness. Summarize the change, release risks, downstream impact, and rollback or remediation plan:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+
+hardening-lifecycle:
+  description: "Think, plan, critique, build, review, test, ship, and red-team a risky change"
+  steps:
+    - agent: lead-software-engineer
+      prompt: "Frame this risky request like a lead engineer. Clarify boundaries, rollback risk, and the safest execution direction:\n\n$INPUT"
+    - agent: planner
+      prompt: "Create a concrete implementation plan with explicit safeguards, sequencing, and rollback considerations:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: plan-reviewer
+      prompt: "Critically review this plan with focus on missing safeguards, rollback gaps, and sequencing issues:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: builder
+      prompt: "Implement this reviewed plan carefully and avoid risky shortcuts:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: reviewer
+      prompt: "Review this implementation for bugs, regressions, and missing tests:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: tester
+      prompt: "Validate the risky implementation. Run the most relevant checks and report concrete evidence:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: release-manager
+      prompt: "Assess ship readiness. Summarize rollout risks, rollback plan, and release requirements:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: red-team
+      prompt: "Perform an adversarial review focused on abuse cases, secrets, destructive commands, and unsafe defaults:\n\n$INPUT\n\nOriginal request: $ORIGINAL"

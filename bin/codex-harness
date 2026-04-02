@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+ROOT="${0:A:h:h}"
+cd "$ROOT"
+
+exec codex --cd "$ROOT" "$@"

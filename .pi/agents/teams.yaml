@@ -1,17 +1,39 @@
 default:
-  - scout
   - planner
-  - plan-reviewer
   - builder
   - reviewer
+  - tester
+  - release-manager
 
 fast-path:
   - planner
   - builder
   - reviewer
+  - tester
+
+software:
+  - scout
+  - lead-software-engineer
+  - planner
+  - plan-reviewer
+  - builder
+  - reviewer
+  - tester
+  - release-manager
+
+data:
+  - scout
+  - lead-data-scientist
+  - planner
+  - plan-reviewer
+  - builder
+  - reviewer
+  - tester
+  - release-manager
 
 research:
   - scout
+  - lead-data-scientist
   - planner
   - plan-reviewer
   - documenter
@@ -19,10 +41,13 @@ research:
 
 hardening:
   - scout
+  - lead-software-engineer
   - planner
   - plan-reviewer
   - builder
   - reviewer
+  - tester
+  - release-manager
   - red-team
 
 docs:
@@ -31,13 +56,19 @@ docs:
   - builder
   - documenter
   - reviewer
+  - tester
+  - release-manager
 
 full:
   - scout
+  - lead-software-engineer
+  - lead-data-scientist
   - planner
   - plan-reviewer
   - builder
   - reviewer
+  - tester
+  - release-manager
   - documenter
   - red-team
 
@@ -45,3 +76,4 @@ fast-build:
   - planner
   - builder
   - reviewer
+  - tester

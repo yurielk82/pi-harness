@@ -6,6 +6,9 @@ default:
 pi:
     pi --no-extensions
 
+codex:
+    codex --cd {{justfile_directory()}}
+
 harness:
     pi --no-extensions -e extensions/damage-control.ts -e extensions/purpose-gate.ts -e extensions/agent-team.ts -e extensions/tilldone.ts
 
