@@ -46,6 +46,7 @@ interface AgentDef {
 	name: string;
 	description: string;
 	tools: string;
+	runner: "pi" | "codex";
 	systemPrompt: string;
 }
 
@@ -152,6 +153,7 @@ function parseAgentFile(filePath: string): AgentDef | null {
 			name: frontmatter.name,
 			description: frontmatter.description || "",
 			tools: frontmatter.tools || "read,grep,find,ls",
+			runner: frontmatter.runner === "codex" ? "codex" : "pi",
 			systemPrompt: match[2].trim(),
 		};
 	} catch {
@@ -372,34 +374,50 @@ export default function (pi: ExtensionAPI) {
 		const agentSessionFile = join(sessionDir, `chain-${agentKey}.json`);
 		const hasSession = agentSessions.get(agentKey);
 		const safetyExtension = getSafetyExtension(ctx.cwd);
-
-		const args = [
-			"--mode", "json",
-			"-p",
-			"--no-extensions",
-			...(safetyExtension ? ["-e", safetyExtension] : []),
-			"--model", model,
-			"--tools", agentDef.tools,
-			"--thinking", "off",
-			"--append-system-prompt", agentDef.systemPrompt,
-			"--session", agentSessionFile,
-		];
-
-		if (hasSession) {
-			args.push("-c");
-		}
-
-		args.push(task);
-
 		const textChunks: string[] = [];
 		const startTime = Date.now();
 		const state = stepStates[stepIndex];
+		const codexOutputFile = join(sessionDir, `chain-${agentKey}.codex.txt`);
+		const codexPrompt = `${agentDef.systemPrompt}\n\nTask:\n${task}`;
 
 		return new Promise((resolve) => {
-			const proc = spawn("pi", args, {
-				stdio: ["ignore", "pipe", "pipe"],
-				env: { ...process.env },
-			});
+			const proc = agentDef.runner === "codex"
+				? spawn(
+					"codex",
+					[
+						"exec",
+						"--cd", ctx.cwd,
+						"--sandbox", "workspace-write",
+						"--color", "never",
+						"--output-last-message", codexOutputFile,
+						codexPrompt,
+					],
+					{
+						stdio: ["ignore", "pipe", "pipe"],
+						cwd: ctx.cwd,
+						env: { ...process.env },
+					},
+				)
+				: spawn(
+					"pi",
+					[
+						"--mode", "json",
+						"-p",
+						"--no-extensions",
+						...(safetyExtension ? ["-e", safetyExtension] : []),
+						"--model", model,
+						"--tools", agentDef.tools,
+						"--thinking", "off",
+						"--append-system-prompt", agentDef.systemPrompt,
+						"--session", agentSessionFile,
+						...(hasSession ? ["-c"] : []),
+						task,
+					],
+					{
+						stdio: ["ignore", "pipe", "pipe"],
+						env: { ...process.env },
+					},
+				);
 
 			const timer = setInterval(() => {
 				state.elapsed = Date.now() - startTime;
@@ -407,9 +425,31 @@ export default function (pi: ExtensionAPI) {
 			}, 1000);
 
 			let buffer = "";
+			state.lastWork = agentDef.runner === "codex" ? "Running via Codex..." : "";
+			updateWidget();
 
 			proc.stdout!.setEncoding("utf-8");
 			proc.stdout!.on("data", (chunk: string) => {
+				if (agentDef.runner === "codex") {
+					const lines = chunk.split("\n").map(line => line.trim()).filter(Boolean);
+					const last = lines.filter(line =>
+						!line.startsWith("WARNING:") &&
+						!line.startsWith("OpenAI Codex") &&
+						!line.startsWith("workdir:") &&
+						!line.startsWith("model:") &&
+						!line.startsWith("provider:") &&
+						!line.startsWith("approval:") &&
+						!line.startsWith("sandbox:") &&
+						!line.startsWith("reasoning") &&
+						!line.startsWith("session id:")
+					).pop();
+					if (last) {
+						state.lastWork = last;
+						updateWidget();
+					}
+					return;
+				}
+
 				buffer += chunk;
 				const lines = buffer.split("\n");
 				buffer = lines.pop() || "";
@@ -432,9 +472,40 @@ export default function (pi: ExtensionAPI) {
 			});
 
 			proc.stderr!.setEncoding("utf-8");
-			proc.stderr!.on("data", () => {});
+			proc.stderr!.on("data", (chunk: string) => {
+				if (agentDef.runner === "codex") {
+					const lines = chunk.split("\n").map(line => line.trim()).filter(Boolean);
+					const last = lines.filter(line => !line.startsWith("WARNING:")).pop();
+					if (last) {
+						state.lastWork = last;
+						updateWidget();
+					}
+				}
+			});
 
 			proc.on("close", (code) => {
+				if (agentDef.runner === "codex") {
+					clearInterval(timer);
+					const elapsed = Date.now() - startTime;
+					state.elapsed = elapsed;
+
+					let output = "";
+					if (existsSync(codexOutputFile)) {
+						try {
+							output = readFileSync(codexOutputFile, "utf-8").trim();
+							unlinkSync(codexOutputFile);
+						} catch {}
+					}
+					if (!output) {
+						output = state.lastWork || "Codex finished without a final message.";
+					}
+
+					state.lastWork = output.split("\n").filter((l: string) => l.trim()).pop() || output;
+					agentSessions.set(agentKey, null);
+					resolve({ output, exitCode: code ?? 1, elapsed });
+					return;
+				}
+
 				if (buffer.trim()) {
 					try {
 						const event = JSON.parse(buffer);

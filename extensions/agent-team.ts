@@ -31,6 +31,7 @@ interface AgentDef {
 	name: string;
 	description: string;
 	tools: string;
+	runner: "pi" | "codex";
 	systemPrompt: string;
 	file: string;
 }
@@ -96,6 +97,7 @@ function parseAgentFile(filePath: string): AgentDef | null {
 			name: frontmatter.name,
 			description: frontmatter.description || "",
 			tools: frontmatter.tools || "read,grep,find,ls",
+			runner: frontmatter.runner === "codex" ? "codex" : "pi",
 			systemPrompt: match[2].trim(),
 			file: filePath,
 		};
@@ -389,43 +391,79 @@ export default function (pi: ExtensionAPI) {
 			? `${ctx.model.provider}/${ctx.model.id}`
 			: "openrouter/google/gemini-3-flash-preview";
 
-		// Session file for this agent
 		const agentKey = state.def.name.toLowerCase().replace(/\s+/g, "-");
 		const agentSessionFile = join(sessionDir, `${agentKey}.json`);
 		const safetyExtension = getSafetyExtension(ctx.cwd);
-
-		// Build args — first run creates session, subsequent runs resume
-		const args = [
-			"--mode", "json",
-			"-p",
-			"--no-extensions",
-			...(safetyExtension ? ["-e", safetyExtension] : []),
-			"--model", model,
-			"--tools", state.def.tools,
-			"--thinking", "off",
-			"--append-system-prompt", state.def.systemPrompt,
-			"--session", agentSessionFile,
-		];
-
-		// Continue existing session if we have one
-		if (state.sessionFile) {
-			args.push("-c");
-		}
-
-		args.push(task);
-
 		const textChunks: string[] = [];
+		const codexPrompt = `${state.def.systemPrompt}\n\nTask:\n${task}`;
 
 		return new Promise((resolve) => {
-			const proc = spawn("pi", args, {
-				stdio: ["ignore", "pipe", "pipe"],
-				env: { ...process.env },
-			});
+			const proc = state.def.runner === "codex"
+				? spawn(
+					"codex",
+					[
+						"exec",
+						"--cd", ctx.cwd,
+						"--sandbox", "workspace-write",
+						"--color", "never",
+						"--output-last-message", join(sessionDir, `${agentKey}.codex.txt`),
+						codexPrompt,
+					],
+					{
+						stdio: ["ignore", "pipe", "pipe"],
+						cwd: ctx.cwd,
+						env: { ...process.env },
+					},
+				)
+				: spawn(
+					"pi",
+					[
+						"--mode", "json",
+						"-p",
+						"--no-extensions",
+						...(safetyExtension ? ["-e", safetyExtension] : []),
+						"--model", model,
+						"--tools", state.def.tools,
+						"--thinking", "off",
+						"--append-system-prompt", state.def.systemPrompt,
+						"--session", agentSessionFile,
+						...(state.sessionFile ? ["-c"] : []),
+						task,
+					],
+					{
+						stdio: ["ignore", "pipe", "pipe"],
+						env: { ...process.env },
+					},
+				);
+			const codexOutputFile = join(sessionDir, `${agentKey}.codex.txt`);
+
+			state.lastWork = state.def.runner === "codex" ? "Running via Codex..." : "";
+			updateWidget();
 
 			let buffer = "";
 
 			proc.stdout!.setEncoding("utf-8");
 			proc.stdout!.on("data", (chunk: string) => {
+				if (state.def.runner === "codex") {
+					const lines = chunk.split("\n").map(line => line.trim()).filter(Boolean);
+					const last = lines.filter(line =>
+						!line.startsWith("WARNING:") &&
+						!line.startsWith("OpenAI Codex") &&
+						!line.startsWith("workdir:") &&
+						!line.startsWith("model:") &&
+						!line.startsWith("provider:") &&
+						!line.startsWith("approval:") &&
+						!line.startsWith("sandbox:") &&
+						!line.startsWith("reasoning") &&
+						!line.startsWith("session id:")
+					).pop();
+					if (last) {
+						state.lastWork = last;
+						updateWidget();
+					}
+					return;
+				}
+
 				buffer += chunk;
 				const lines = buffer.split("\n");
 				buffer = lines.pop() || "";
@@ -464,9 +502,50 @@ export default function (pi: ExtensionAPI) {
 			});
 
 			proc.stderr!.setEncoding("utf-8");
-			proc.stderr!.on("data", () => {});
+			proc.stderr!.on("data", (chunk: string) => {
+				if (state.def.runner === "codex") {
+					const lines = chunk.split("\n").map(line => line.trim()).filter(Boolean);
+					const last = lines.filter(line => !line.startsWith("WARNING:")).pop();
+					if (last) {
+						state.lastWork = last;
+						updateWidget();
+					}
+				}
+			});
 
 			proc.on("close", (code) => {
+				if (state.def.runner === "codex") {
+					let output = "";
+					if (existsSync(codexOutputFile)) {
+						try {
+							output = readFileSync(codexOutputFile, "utf-8").trim();
+							unlinkSync(codexOutputFile);
+						} catch {}
+					}
+					if (!output) {
+						output = state.lastWork || "Codex finished without a final message.";
+					}
+
+					clearInterval(state.timer);
+					state.elapsed = Date.now() - startTime;
+					state.status = code === 0 ? "done" : "error";
+					state.sessionFile = null;
+					state.lastWork = output.split("\n").filter((l: string) => l.trim()).pop() || output;
+					updateWidget();
+
+					ctx.ui.notify(
+						`${displayName(state.def.name)} ${state.status} in ${Math.round(state.elapsed / 1000)}s`,
+						state.status === "done" ? "success" : "error"
+					);
+
+					resolve({
+						output,
+						exitCode: code ?? 1,
+						elapsed: state.elapsed,
+					});
+					return;
+				}
+
 				if (buffer.trim()) {
 					try {
 						const event = JSON.parse(buffer);
@@ -481,7 +560,6 @@ export default function (pi: ExtensionAPI) {
 				state.elapsed = Date.now() - startTime;
 				state.status = code === 0 ? "done" : "error";
 
-				// Mark session file as available for resume
 				if (code === 0) {
 					state.sessionFile = agentSessionFile;
 				}

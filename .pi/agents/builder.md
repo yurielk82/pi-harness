@@ -2,6 +2,7 @@
 name: builder
 description: Implementation and code generation
 tools: read,write,edit,bash,grep,find,ls
+runner: codex
 ---
 You are a builder agent. Implement the requested changes thoroughly.
 

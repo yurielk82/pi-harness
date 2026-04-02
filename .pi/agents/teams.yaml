@@ -24,9 +24,29 @@ software:
 data:
   - scout
   - lead-data-scientist
+  - data-engineer
   - planner
   - plan-reviewer
-  - builder
+  - reviewer
+  - tester
+  - release-manager
+
+analysis:
+  - scout
+  - lead-data-scientist
+  - analytics-engineer
+  - planner
+  - reviewer
+  - tester
+  - release-manager
+
+ml-platform:
+  - scout
+  - lead-software-engineer
+  - ml-engineer
+  - data-engineer
+  - planner
+  - plan-reviewer
   - reviewer
   - tester
   - release-manager
@@ -63,6 +83,9 @@ full:
   - scout
   - lead-software-engineer
   - lead-data-scientist
+  - data-engineer
+  - analytics-engineer
+  - ml-engineer
   - planner
   - plan-reviewer
   - builder

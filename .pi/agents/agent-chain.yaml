@@ -119,14 +119,46 @@ data-lifecycle:
       prompt: "Frame this request like a lead data scientist. Clarify objective, metrics, assumptions, data risks, and the right execution direction:\n\n$INPUT"
     - agent: planner
       prompt: "Turn this analytical direction into a concrete implementation plan with risks and sequencing:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
-    - agent: builder
-      prompt: "Implement the approved plan below:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: data-engineer
+      prompt: "Implement the approved plan below as a data engineering or warehouse change. Keep schemas, transformations, and contracts explicit:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
     - agent: reviewer
       prompt: "Review this implementation for bugs, regressions, code quality, and missing tests:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
     - agent: tester
       prompt: "Validate the implemented behavior, queries, analysis flow, or data outputs. Run relevant checks and report evidence:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
     - agent: release-manager
       prompt: "Assess ship readiness. Summarize the change, release risks, downstream impact, and rollback or remediation plan:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+
+analysis-lifecycle:
+  description: "Think, plan, build, review, test, and ship for analytics and reporting work"
+  steps:
+    - agent: lead-data-scientist
+      prompt: "Frame this analytics request. Clarify decision intent, metric definitions, assumptions, and analytical risks:\n\n$INPUT"
+    - agent: planner
+      prompt: "Turn this analytical direction into a concrete execution plan with sequencing and risks:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: analytics-engineer
+      prompt: "Implement the approved analytical plan below. Keep metric definitions, joins, and business semantics explicit:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: reviewer
+      prompt: "Review this analytical implementation for correctness, broken assumptions, regressions, and missing tests:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: tester
+      prompt: "Validate the analytical output. Run relevant checks, inspect edge cases, and report evidence:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: release-manager
+      prompt: "Assess ship readiness. Summarize metric or reporting impact, release notes, and rollback or remediation plan:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+
+ml-platform-lifecycle:
+  description: "Think, plan, build, review, test, and ship for ML platform and model-serving work"
+  steps:
+    - agent: lead-software-engineer
+      prompt: "Frame this ML platform request like a lead engineer. Clarify system boundaries, rollout shape, and platform risks:\n\n$INPUT"
+    - agent: planner
+      prompt: "Turn this platform direction into a concrete implementation plan with sequencing and risks:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: ml-engineer
+      prompt: "Implement the approved ML platform plan below. Keep training, inference, evaluation, and monitoring boundaries explicit:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: reviewer
+      prompt: "Review this implementation for bugs, regressions, platform quality, and missing tests:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: tester
+      prompt: "Validate the ML platform implementation. Run relevant checks and report evidence for behavior, evaluation, and observability:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: release-manager
+      prompt: "Assess ship readiness. Summarize release notes, rollout guidance, and rollback plan for this ML platform change:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
 
 hardening-lifecycle:
   description: "Think, plan, critique, build, review, test, ship, and red-team a risky change"

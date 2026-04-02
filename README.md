@@ -133,6 +133,16 @@ Each agent runs as an isolated Pi subprocess with its own tools and persistent s
 
 Agent definitions live in `.pi/agents/<name>.md`.
 
+Agents can also declare a `runner` in frontmatter:
+- `runner: pi` for Pi subprocesses
+- `runner: codex` for Codex subprocesses
+
+Current default runner split:
+- Pi: leads, planner, plan-reviewer, reviewer, red-team, release-manager, documenter, dispatcher
+- Codex: builder, data-engineer, analytics-engineer, ml-engineer, tester
+
+Codex-run specialists are currently stateless per invocation. Shared context should flow through repo files, workflow artifacts, and memory files rather than per-agent Codex sessions.
+
 ### Teams
 
 <!-- Keep in sync with .pi/agents/teams.yaml -->
