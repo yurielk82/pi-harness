@@ -20,14 +20,14 @@ import { fileURLToPath } from "url";
 // Value = theme name from .pi/themes/<value>.json
 //
 export const THEME_MAP: Record<string, string> = {
-	"agent-chain":   "midnight-ocean",
-	"agent-team":    "dracula",
-	"cross-agent":   "ocean-breeze",
-	"damage-control":"gruvbox",
-	"purpose-gate":  "tokyo-night",
+	"agent-chain":   "catppuccin-mocha",
+	"agent-team":    "catppuccin-mocha",
+	"cross-agent":   "catppuccin-mocha",
+	"damage-control":"catppuccin-mocha",
+	"purpose-gate":  "catppuccin-mocha",
 	"system-select": "catppuccin-mocha",
-	"theme-cycler":  "synthwave",
-	"tilldone":      "everforest",
+	"theme-cycler":  "catppuccin-mocha",
+	"tilldone":      "catppuccin-mocha",
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -61,13 +61,13 @@ export function applyExtensionTheme(fileUrl: string, ctx: ExtensionContext): boo
 	let themeName = THEME_MAP[name];
 	
 	if (!themeName) {
-		themeName = "synthwave";
+		themeName = "catppuccin-mocha";
 	}
 
 	const result = ctx.ui.setTheme(themeName);
 	
-	if (!result.success && themeName !== "synthwave") {
-		return ctx.ui.setTheme("synthwave").success;
+	if (!result.success && themeName !== "catppuccin-mocha") {
+		return ctx.ui.setTheme("catppuccin-mocha").success;
 	}
 	
 	return result.success;

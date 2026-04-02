@@ -208,7 +208,7 @@ export default function (pi: ExtensionAPI) {
 
 		// Auto-size grid columns based on team size
 		const size = agentStates.size;
-		gridCols = size <= 3 ? size : size === 4 ? 2 : 3;
+		gridCols = Math.max(1, size);
 	}
 
 	function resetAgentSessions(agentName?: string): { removed: number; message: string } {
@@ -258,7 +258,7 @@ export default function (pi: ExtensionAPI) {
 	// ── Grid Rendering ───────────────────────────
 
 	function renderCard(state: AgentState, colWidth: number, theme: any): string[] {
-		const w = colWidth - 2;
+		const w = Math.max(12, colWidth);
 		const truncate = (s: string, max: number) => s.length > max ? s.slice(0, max - 3) + "..." : s;
 
 		const statusColor = state.status === "idle" ? "dim"
@@ -274,35 +274,30 @@ export default function (pi: ExtensionAPI) {
 
 		const statusStr = `${statusIcon} ${state.status}`;
 		const timeStr = state.status !== "idle" ? ` ${Math.round(state.elapsed / 1000)}s` : "";
-		const statusLine = theme.fg(statusColor, statusStr + timeStr);
+		const statusLine = theme.fg(statusColor, statusStr) + theme.fg("dim", timeStr);
 		const statusVisible = statusStr.length + timeStr.length;
 
-		// Context bar: 5 blocks + percent
-		const filled = Math.ceil(state.contextPct / 20);
-		const bar = "#".repeat(filled) + "-".repeat(5 - filled);
-		const ctxStr = `[${bar}] ${Math.ceil(state.contextPct)}%`;
-		const ctxLine = theme.fg("dim", ctxStr);
-		const ctxVisible = ctxStr.length;
+		const pctStr = `${Math.ceil(state.contextPct)}%`;
+		const pctLine = theme.fg("dim", pctStr);
+		const pctVisible = pctStr.length;
 
-		const workRaw = state.task
-			? (state.lastWork || state.task)
-			: state.def.description;
-		const workText = truncate(workRaw, Math.min(50, w - 1));
-		const workLine = theme.fg("muted", workText);
-		const workVisible = workText.length;
+		const padRight = (content: string, visLen: number) =>
+			content + " ".repeat(Math.max(0, w - visLen));
 
-		const top = "┌" + "─".repeat(w) + "┐";
-		const bot = "└" + "─".repeat(w) + "┘";
-		const border = (content: string, visLen: number) =>
-			theme.fg("dim", "│") + content + " ".repeat(Math.max(0, w - visLen)) + theme.fg("dim", "│");
+		const nameMax = Math.max(6, w - statusVisible - pctVisible - 4);
+		const shortName = truncate(name, nameMax);
+		const shortNameStr = theme.fg("accent", theme.bold(shortName));
+		const shortNameVisible = Math.min(shortName.length, nameMax);
+		const line =
+			shortNameStr +
+			" " +
+			statusLine +
+			" " +
+			pctLine;
+		const visible = shortNameVisible + 1 + statusVisible + 1 + pctVisible;
 
 		return [
-			theme.fg("dim", top),
-			border(" " + nameStr, 1 + nameVisible),
-			border(" " + statusLine, 1 + statusVisible),
-			border(" " + ctxLine, 1 + ctxVisible),
-			border(" " + workLine, 1 + workVisible),
-			theme.fg("dim", bot),
+			padRight(line, visible),
 		];
 	}
 
@@ -328,9 +323,10 @@ export default function (pi: ExtensionAPI) {
 					for (let i = 0; i < agents.length; i += cols) {
 						const rowAgents = agents.slice(i, i + cols);
 						const cards = rowAgents.map(a => renderCard(a, colWidth, theme));
+						const blankCard = Array(cards[0]?.length || 1).fill(" ".repeat(colWidth));
 
 						while (cards.length < cols) {
-							cards.push(Array(6).fill(" ".repeat(colWidth)));
+							cards.push(blankCard);
 						}
 
 						const cardHeight = cards[0].length;
