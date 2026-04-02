@@ -7,7 +7,7 @@ This repo extracts the useful orchestration pieces from `pi-vs-claude-code` into
 - optional sequential chains
 - tool-call safety rules
 - purpose and task discipline
-- optional cross-agent imports from `.claude`, `.codex`, and `.gemini`
+- optional cross-agent imports from `.claude` and `.gemini`
 
 It is designed to run in isolation from your global Pi extension state. Every launch command uses `--no-extensions` and loads only this repo's extensions.
 
@@ -246,7 +246,7 @@ Customize rules by editing `.pi/damage-control-rules.yaml`.
 | `/theme` | theme-cycler | Cycle through bundled themes |
 | `/system` | system-select | Switch system prompt persona |
 
-The `cross-agent` extension scans `.claude/`, `.gemini/`, and `.codex/` directories at both the project root and `$HOME` for commands, skills, and agents. Discovered commands are registered as slash commands automatically.
+The `cross-agent` extension scans `.claude/` and `.gemini/` directories at both the project root and `$HOME` for commands, skills, and agents. Discovered commands are registered as slash commands automatically.
 
 The dispatcher can also switch teams automatically via the `select_team` tool before dispatching work. Current routing intent:
 - `software` for backend, app, service, and platform engineering work
@@ -297,7 +297,7 @@ Suggested cadence:
 Codex is now a first-class entrypoint for this repo:
 - `just codex`
 - `./bin/codex-harness`
-- project-local `.codex/commands/` matching the workflow prompts
+- project-local `.codex/commands/` for Codex itself
 - project-local Claude command `/codex` for Codex handoff without manual `cd`
 
 That gives Pi and Codex the same command vocabulary and the same workflow artifact layer.
@@ -341,7 +341,6 @@ Additional specialists brought in by other teams:
 
 Cross-agent prompt discovery points at:
 - `../.claude/commands`
-- `../.codex/commands`
 - `../.gemini/commands`
 
 ## Validation

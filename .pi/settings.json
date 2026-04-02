@@ -2,7 +2,6 @@
   "theme": "catppuccin-mocha",
   "prompts": [
     "../.claude/commands",
-    "../.codex/commands",
     "../.gemini/commands"
   ]
 }
