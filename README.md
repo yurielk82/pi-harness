@@ -159,15 +159,17 @@ Teams are named agent rosters loaded by the `agent-team` extension. Switch teams
 
 | Team | Agents | Use When |
 |------|--------|----------|
-| `default` | planner, builder, reviewer, tester, release-manager | Stage-based default flow |
-| `fast-path` | planner, builder, reviewer, tester | You already know the codebase and need less ceremony |
+| `default` | planner, plan-reviewer, builder, reviewer, tester, release-manager | Stage-based default flow with plan critique |
+| `fast-path` | planner, builder, reviewer, tester | You already know the codebase and want a fast path that still includes validation |
 | `software` | scout, lead-software-engineer, planner, plan-reviewer, builder, reviewer, tester, release-manager | Software engineering and platform work |
-| `data` | scout, lead-data-scientist, planner, plan-reviewer, builder, reviewer, tester, release-manager | Data engineering, analysis, and data science work |
+| `data` | scout, lead-data-scientist, data-engineer, planner, plan-reviewer, reviewer, tester, release-manager | Data engineering, warehouse, and data science work |
+| `analysis` | scout, lead-data-scientist, analytics-engineer, planner, reviewer, tester, release-manager | Metrics, dashboards, and analytical SQL work |
+| `ml-platform` | scout, lead-software-engineer, ml-engineer, data-engineer, planner, plan-reviewer, reviewer, tester, release-manager | ML systems, serving, training, and evaluation work |
 | `research` | scout, lead-data-scientist, planner, plan-reviewer, documenter, reviewer | Investigation and analytical framing |
 | `hardening` | scout, lead-software-engineer, planner, plan-reviewer, builder, reviewer, tester, release-manager, red-team | Security-sensitive or risky changes |
 | `docs` | scout, planner, builder, documenter, reviewer, tester, release-manager | Tasks that include documentation and release updates |
-| `full` | scout, lead-software-engineer, lead-data-scientist, planner, plan-reviewer, builder, reviewer, tester, release-manager, documenter, red-team | Full specialist roster |
-| `fast-build` | planner, builder, reviewer, tester | Minimal plan-build-review-test cycle |
+| `full` | scout, lead-software-engineer, lead-data-scientist, data-engineer, analytics-engineer, ml-engineer, planner, plan-reviewer, builder, reviewer, tester, release-manager, documenter, red-team | Full specialist roster |
+| `fast-build` | planner, builder, reviewer | Minimal plan-build-review cycle without the tester stage |
 
 Defined in `.pi/agents/teams.yaml`.
 
@@ -189,6 +191,8 @@ Chains are automated multi-step sequences where each agent's output feeds the ne
 | `hardening-review` | scout → planner → plan-reviewer → builder → reviewer → red-team | Risky change with adversarial review |
 | `software-lifecycle` | lead-software-engineer → planner → builder → reviewer → tester → release-manager | Think, plan, build, review, test, and ship for software work |
 | `data-lifecycle` | lead-data-scientist → planner → builder → reviewer → tester → release-manager | Think, plan, build, review, test, and ship for data work |
+| `analysis-lifecycle` | lead-data-scientist → planner → analytics-engineer → reviewer → tester → release-manager | Think, plan, build, review, test, and ship for analytics work |
+| `ml-platform-lifecycle` | lead-software-engineer → planner → ml-engineer → reviewer → tester → release-manager | Think, plan, build, review, test, and ship for ML platform work |
 | `hardening-lifecycle` | lead-software-engineer → planner → plan-reviewer → builder → reviewer → tester → release-manager → red-team | Full risky-change lifecycle |
 
 Defined in `.pi/agents/agent-chain.yaml`.

@@ -38,6 +38,9 @@ required_files=(
 echo "==> Typecheck"
 bun x tsc --noEmit
 
+echo "==> Settings JSON"
+bun -e 'JSON.parse(require("node:fs").readFileSync(".pi/settings.json", "utf8"))'
+
 echo "==> Required files"
 for path in "${required_files[@]}"; do
   [[ -f "$path" ]] || {
