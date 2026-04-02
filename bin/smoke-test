@@ -15,14 +15,16 @@ required_files=(
   ".pi/workflows/review-readiness.md"
   ".pi/workflows/release.md"
   ".pi/workflows/retro.md"
+  ".agents/commands/prime.md"
+  ".agents/commands/office-hours.md"
+  ".agents/commands/plan-eng-review.md"
+  ".agents/commands/review-readiness.md"
+  ".agents/commands/ship.md"
+  ".agents/commands/retro.md"
+  ".agents/commands/learn.md"
   ".claude/commands/codex.md"
-  ".claude/commands/office-hours.md"
-  ".claude/commands/plan-eng-review.md"
-  ".claude/commands/review-readiness.md"
-  ".claude/commands/ship.md"
-  ".claude/commands/retro.md"
-  ".claude/commands/learn.md"
   ".codex/commands/codex.md"
+  ".codex/commands/prime.md"
   ".codex/commands/office-hours.md"
   ".codex/commands/plan-eng-review.md"
   ".codex/commands/review-readiness.md"
@@ -62,8 +64,8 @@ echo "==> pi-harness passthrough"
 ./bin/pi-harness typecheck >/dev/null
 
 echo "==> Command mirrors"
-for name in office-hours plan-eng-review review-readiness ship retro learn; do
-  [[ "$(<".claude/commands/${name}.md")" == "$(<".codex/commands/${name}.md")" ]] || {
+for name in prime office-hours plan-eng-review review-readiness ship retro learn; do
+  [[ "$(<".agents/commands/${name}.md")" == "$(<".codex/commands/${name}.md")" ]] || {
     echo "command definitions diverged: $name" >&2
     exit 1
   }

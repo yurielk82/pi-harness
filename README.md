@@ -7,7 +7,7 @@ This repo extracts the useful orchestration pieces from `pi-vs-claude-code` into
 - optional sequential chains
 - tool-call safety rules
 - purpose and task discipline
-- optional cross-agent imports from `.claude` and `.gemini`
+- optional shared prompt imports from `.agents` plus Claude-specific handoff prompts
 
 It is designed to run in isolation from your global Pi extension state. Every launch command uses `--no-extensions` and loads only this repo's extensions.
 
@@ -246,7 +246,7 @@ Customize rules by editing `.pi/damage-control-rules.yaml`.
 | `/theme` | theme-cycler | Cycle through bundled themes |
 | `/system` | system-select | Switch system prompt persona |
 
-The `cross-agent` extension scans `.claude/` and `.gemini/` directories at both the project root and `$HOME` for commands, skills, and agents. Discovered commands are registered as slash commands automatically.
+The `cross-agent` extension scans `.agents/` and `.claude/` directories at both the project root and `$HOME` for commands, skills, and agents. Discovered commands are registered as slash commands automatically.
 
 The dispatcher can also switch teams automatically via the `select_team` tool before dispatching work. Current routing intent:
 - `software` for backend, app, service, and platform engineering work
@@ -272,7 +272,7 @@ Durable memory:
 - `.pi/memory/work-style.md`
 - `.pi/memory/learnings.md`
 
-Mirrored workflow commands exist in both `.claude/commands/` and `.codex/commands/`:
+Shared workflow commands live in `.agents/commands/` and are mirrored into `.codex/commands/`:
 - `/prime`
 - `/office-hours`
 - `/plan-eng-review`
@@ -340,8 +340,8 @@ Additional specialists brought in by other teams:
 - `theme-cycler`
 
 Cross-agent prompt discovery points at:
+- `../.agents/commands`
 - `../.claude/commands`
-- `../.gemini/commands`
 
 ## Validation
 
@@ -394,7 +394,9 @@ pi-harness/
 ├── .github/
 │   ├── workflows/ci.yml
 │   └── ISSUE_TEMPLATE/
+├── .agents/commands/
 ├── .claude/commands/
+├── .codex/commands/
 ├── CONTRIBUTING.md
 ├── LICENSE.md
 ├── justfile

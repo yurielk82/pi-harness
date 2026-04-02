@@ -1,7 +1,7 @@
 /**
  * System Select — Switch the system prompt via /system
  *
- * Scans .pi/agents/, .claude/agents/, .gemini/agents/, .codex/agents/
+ * Scans .pi/agents/, .agents/agents/, .claude/agents/, and .codex/agents/
  * (project-local and global) for agent definition .md files.
  *
  * /system opens a select dialog to pick a system prompt. The selected
@@ -76,12 +76,12 @@ export default function (pi: ExtensionAPI) {
 
 		const dirs: [string, string][] = [
 			[join(cwd, ".pi", "agents"), ".pi"],
+			[join(cwd, ".agents", "agents"), ".agents"],
 			[join(cwd, ".claude", "agents"), ".claude"],
-			[join(cwd, ".gemini", "agents"), ".gemini"],
 			[join(cwd, ".codex", "agents"), ".codex"],
 			[join(home, ".pi", "agent", "agents"), "~/.pi"],
+			[join(home, ".agents", "agents"), "~/.agents"],
 			[join(home, ".claude", "agents"), "~/.claude"],
-			[join(home, ".gemini", "agents"), "~/.gemini"],
 			[join(home, ".codex", "agents"), "~/.codex"],
 		];
 

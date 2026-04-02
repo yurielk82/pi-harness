@@ -14,7 +14,7 @@ This verifies:
 - TypeScript compiles
 - launchers are executable
 - required workflow, agent, and command files exist
-- `.claude/commands/` and `.codex/commands/` stay mirrored
+- shared `.agents/commands/` and `.codex/commands/` stay mirrored
 - `pi-harness typecheck` still works
 
 ## Interactive
@@ -46,7 +46,7 @@ pi-harness full
 Verify:
 - `/codex` is available
 - `/system` is available
-- imported commands from `.claude/commands/` load
+- shared commands from `.agents/commands/` load
 
 ### Team Routing
 

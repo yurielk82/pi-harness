@@ -1,7 +1,7 @@
 /**
- * Cross-Agent — Load commands, skills, and agents from other AI coding agents
+ * Cross-Agent — Load shared and Claude-specific commands, skills, and agents
  *
- * Scans .claude/ and .gemini/ directories (project + global) for:
+ * Scans .agents/ and .claude/ directories (project + global) for:
  *   commands/*.md  → registered as /name
  *   skills/        → listed as /skill:name (discovery only)
  *   agents/*.md    → listed as @name (discovery only)
@@ -152,7 +152,7 @@ export default function (pi: ExtensionAPI) {
 	//
 	const home = homedir();
 	const cwd = process.cwd();
-	const providers = ["claude", "gemini"];
+	const providers = ["agents", "claude"];
 	const groups: SourceGroup[] = [];
 
 	for (const p of providers) {
