@@ -277,6 +277,12 @@ export default function (pi: ExtensionAPI) {
 	function renderCard(state: AgentState, colWidth: number, theme: any): string[] {
 		const w = Math.max(12, colWidth);
 		const truncate = (s: string, max: number) => s.length > max ? s.slice(0, max - 3) + "..." : s;
+		const center = (content: string, visible: number) => {
+			const free = Math.max(0, w - visible);
+			const left = Math.floor(free / 2);
+			const right = free - left;
+			return " ".repeat(left) + content + " ".repeat(right);
+		};
 
 		const statusColor = state.status === "idle" ? "dim"
 			: state.status === "running" ? "accent"
@@ -286,8 +292,9 @@ export default function (pi: ExtensionAPI) {
 			: state.status === "done" ? "✓" : "✗";
 
 		const name = displayName(state.def.name);
-		const nameStr = theme.fg("accent", theme.bold(truncate(name, w)));
-		const nameVisible = Math.min(name.length, w);
+		const shortName = truncate(name, w);
+		const nameStr = theme.fg("accent", theme.bold(shortName));
+		const nameVisible = Math.min(shortName.length, w);
 
 		const statusStr = `${statusIcon} ${state.status}`;
 		const timeStr = state.status !== "idle" ? ` ${Math.round(state.elapsed / 1000)}s` : "";
@@ -298,23 +305,10 @@ export default function (pi: ExtensionAPI) {
 		const pctLine = theme.fg("dim", pctStr);
 		const pctVisible = pctStr.length;
 
-		const padRight = (content: string, visLen: number) =>
-			content + " ".repeat(Math.max(0, w - visLen));
-
-		const nameMax = Math.max(6, w - statusVisible - pctVisible - 4);
-		const shortName = truncate(name, nameMax);
-		const shortNameStr = theme.fg("accent", theme.bold(shortName));
-		const shortNameVisible = Math.min(shortName.length, nameMax);
-		const line =
-			shortNameStr +
-			" " +
-			statusLine +
-			" " +
-			pctLine;
-		const visible = shortNameVisible + 1 + statusVisible + 1 + pctVisible;
-
 		return [
-			padRight(line, visible),
+			center(nameStr, nameVisible),
+			center(statusLine, statusVisible),
+			center(pctLine, pctVisible),
 		];
 	}
 
