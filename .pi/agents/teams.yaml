@@ -1,0 +1,47 @@
+default:
+  - scout
+  - planner
+  - plan-reviewer
+  - builder
+  - reviewer
+
+fast-path:
+  - planner
+  - builder
+  - reviewer
+
+research:
+  - scout
+  - planner
+  - plan-reviewer
+  - documenter
+  - reviewer
+
+hardening:
+  - scout
+  - planner
+  - plan-reviewer
+  - builder
+  - reviewer
+  - red-team
+
+docs:
+  - scout
+  - planner
+  - builder
+  - documenter
+  - reviewer
+
+full:
+  - scout
+  - planner
+  - plan-reviewer
+  - builder
+  - reviewer
+  - documenter
+  - red-team
+
+fast-build:
+  - planner
+  - builder
+  - reviewer

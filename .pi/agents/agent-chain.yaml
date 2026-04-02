@@ -1,0 +1,97 @@
+plan-build-review:
+  description: "Plan, critique the plan, implement, and review"
+  steps:
+    - agent: planner
+      prompt: "Create an implementation plan for: $INPUT"
+    - agent: plan-reviewer
+      prompt: "Critically review this implementation plan. Challenge assumptions, find missing steps, and tighten sequencing:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: builder
+      prompt: "Implement the reviewed plan below. Preserve its intent, but make pragmatic adjustments if needed:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: reviewer
+      prompt: "Review this implementation for bugs, regressions, and missing tests:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+
+scout-plan-build-review:
+  description: "Scout first, then plan, critique, implement, and review for ambiguous or larger tasks"
+  steps:
+    - agent: scout
+      prompt: "Investigate the codebase and gather the facts needed to complete this request:\n\n$INPUT\n\nReport the relevant files, constraints, and patterns."
+    - agent: planner
+      prompt: "Create an implementation plan using this reconnaissance:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: plan-reviewer
+      prompt: "Critically review this implementation plan. Challenge assumptions, find gaps, and suggest improvements:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: builder
+      prompt: "Implement the reviewed plan with the reconnaissance context in mind:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: reviewer
+      prompt: "Review the implementation for bugs, regressions, and missing tests:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+
+plan-build:
+  description: "Plan then build — fast two-step implementation without review"
+  steps:
+    - agent: planner
+      prompt: "Plan the implementation for: $INPUT"
+    - agent: builder
+      prompt: "Based on this plan, implement:\n\n$INPUT"
+
+scout-flow:
+  description: "Triple-scout deep recon — explore, validate, verify"
+  steps:
+    - agent: scout
+      prompt: "Explore the codebase and investigate: $INPUT\n\nReport your findings with structure, key files, and patterns."
+    - agent: scout
+      prompt: "Validate and cross-check the following analysis. Look for anything missed, incorrect, or incomplete:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: scout
+      prompt: "Final review pass. Verify the analysis below is accurate and complete. Add any missing details or corrections:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+
+plan-review-plan:
+  description: "Iterative planning — plan, critique, then refine with feedback"
+  steps:
+    - agent: planner
+      prompt: "Create a detailed implementation plan for: $INPUT"
+    - agent: plan-reviewer
+      prompt: "Critically review this implementation plan. Challenge assumptions, find gaps, and suggest improvements:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: planner
+      prompt: "Revise and improve your implementation plan based on this critique. Address every issue raised and incorporate the recommendations:\n\nOriginal request: $ORIGINAL\n\nCritique:\n$INPUT"
+
+full-review:
+  description: "End-to-end pipeline — scout, plan, critique, build, and review"
+  steps:
+    - agent: scout
+      prompt: "Explore the codebase and identify: $INPUT"
+    - agent: planner
+      prompt: "Based on this analysis, create a plan:\n\n$INPUT"
+    - agent: plan-reviewer
+      prompt: "Critically review this implementation plan for gaps, risks, and sequencing issues:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: builder
+      prompt: "Implement this plan:\n\n$INPUT"
+    - agent: reviewer
+      prompt: "Review this implementation:\n\n$INPUT"
+
+docs-finish:
+  description: "Implement and then bring docs in sync"
+  steps:
+    - agent: planner
+      prompt: "Create an implementation plan for: $INPUT"
+    - agent: plan-reviewer
+      prompt: "Critically review this implementation plan. Tighten it before coding begins:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: builder
+      prompt: "Implement the reviewed plan:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: documenter
+      prompt: "Update documentation to match the implemented behavior. Include README or usage examples if needed:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: reviewer
+      prompt: "Review both the implementation and its documentation for accuracy, regressions, and missing tests:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+
+hardening-review:
+  description: "Implement a risky change, review it normally, then stress it adversarially"
+  steps:
+    - agent: scout
+      prompt: "Investigate the codebase and identify the risky surfaces, constraints, and affected files for:\n\n$INPUT"
+    - agent: planner
+      prompt: "Create an implementation plan that explicitly accounts for safety, rollback, and validation:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: plan-reviewer
+      prompt: "Critically review this plan with focus on sequencing, rollback, and missing safeguards:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: builder
+      prompt: "Implement this reviewed plan carefully. Respect safety constraints and avoid destructive shortcuts:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: reviewer
+      prompt: "Review this implementation for bugs, regressions, and missing tests:\n\n$INPUT\n\nOriginal request: $ORIGINAL"
+    - agent: red-team
+      prompt: "Perform an adversarial review of the implementation below. Focus on secrets, destructive commands, injection, rollback hazards, and unsafe defaults:\n\n$INPUT\n\nOriginal request: $ORIGINAL"

@@ -1,0 +1,20 @@
+{
+  "name": "pi-harness",
+  "private": true,
+  "type": "module",
+  "description": "Standalone Pi Coding Agent harness with dispatcher, chains, and safety controls",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mariozechner/pi-coding-agent": "^0.64.0",
+    "@mariozechner/pi-tui": "^0.64.0",
+    "@sinclair/typebox": "^0.34.49",
+    "yaml": "^2.8.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@types/node": "^25.5.0",
+    "typescript": "^6.0.2"
+  }
+}

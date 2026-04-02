@@ -1,0 +1,32 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+ROOT="${0:A:h:h}"
+cd "$ROOT"
+
+mode="${1-}"
+
+case "$mode" in
+  "" )
+    exec just harness
+    ;;
+  full )
+    exec just harness-full
+    ;;
+  chain )
+    exec just harness-chain
+    ;;
+  chain-full )
+    exec just harness-chain-full
+    ;;
+  pi )
+    exec just pi
+    ;;
+  typecheck )
+    exec just typecheck
+    ;;
+  * )
+    echo "usage: pi-harness [full|chain|chain-full|pi|typecheck]" >&2
+    exit 1
+    ;;
+esac

@@ -1,0 +1,8 @@
+{
+  "theme": "synthwave",
+  "prompts": [
+    "../.claude/commands",
+    "../.codex/commands",
+    "../.gemini/commands"
+  ]
+}
