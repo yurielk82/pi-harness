@@ -97,6 +97,12 @@ Codex from the repo root:
 just codex
 ```
 
+Smoke checks:
+
+```bash
+just smoke
+```
+
 Repo-local launcher:
 
 ```bash
@@ -105,6 +111,7 @@ Repo-local launcher:
 ./bin/pi-harness chain
 ./bin/pi-harness chain-full
 ./bin/pi-harness pi
+./bin/pi-harness smoke
 ./bin/pi-harness typecheck
 ./bin/codex-harness
 ```
@@ -273,9 +280,8 @@ Mirrored workflow commands exist in both `.claude/commands/` and `.codex/command
 - `/ship`
 - `/retro`
 - `/learn`
-- `/codex`
 
-`/codex` is the primary Codex handoff command.
+`/codex` is the primary Codex handoff command, but its Claude and Codex prompt files are intentionally frontend-specific.
 
 Suggested cadence:
 1. `/office-hours`
@@ -345,6 +351,14 @@ just typecheck
 ```
 
 CI runs the same typecheck on pushes and pull requests.
+
+For a broader repo-level validation, run:
+
+```bash
+just smoke
+```
+
+Interactive runtime checks are documented in [docs/smoke-test.md](docs/smoke-test.md).
 
 ## Repo Layout
 

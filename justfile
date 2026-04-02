@@ -1,4 +1,5 @@
 set dotenv-load := true
+set shell := ["/bin/zsh", "-cu"]
 
 default:
     @just --list
@@ -8,6 +9,9 @@ pi:
 
 codex:
     codex --cd {{justfile_directory()}}
+
+smoke:
+    ./bin/smoke-test
 
 harness:
     pi --no-extensions -e extensions/damage-control.ts -e extensions/purpose-gate.ts -e extensions/agent-team.ts -e extensions/tilldone.ts

@@ -1,0 +1,79 @@
+#!/bin/zsh
+set -euo pipefail
+
+ROOT="${0:A:h:h}"
+cd "$ROOT"
+
+required_files=(
+  ".pi/agents/teams.yaml"
+  ".pi/agents/agent-chain.yaml"
+  ".pi/damage-control-rules.yaml"
+  ".pi/settings.json"
+  ".pi/workflows/problem.md"
+  ".pi/workflows/plan.md"
+  ".pi/workflows/test-plan.md"
+  ".pi/workflows/review-readiness.md"
+  ".pi/workflows/release.md"
+  ".pi/workflows/retro.md"
+  ".claude/commands/codex.md"
+  ".claude/commands/office-hours.md"
+  ".claude/commands/plan-eng-review.md"
+  ".claude/commands/review-readiness.md"
+  ".claude/commands/ship.md"
+  ".claude/commands/retro.md"
+  ".claude/commands/learn.md"
+  ".codex/commands/codex.md"
+  ".codex/commands/office-hours.md"
+  ".codex/commands/plan-eng-review.md"
+  ".codex/commands/review-readiness.md"
+  ".codex/commands/ship.md"
+  ".codex/commands/retro.md"
+  ".codex/commands/learn.md"
+  "docs/intake-template.md"
+  "docs/README.md"
+)
+
+echo "==> Typecheck"
+bun x tsc --noEmit
+
+echo "==> Required files"
+for path in "${required_files[@]}"; do
+  [[ -f "$path" ]] || {
+    echo "missing required file: $path" >&2
+    exit 1
+  }
+done
+
+echo "==> Launcher scripts"
+[[ -x "bin/pi-harness" ]] || {
+  echo "pi-harness launcher is not executable" >&2
+  exit 1
+}
+[[ -x "bin/codex-harness" ]] || {
+  echo "codex-harness launcher is not executable" >&2
+  exit 1
+}
+[[ -x "bin/smoke-test" ]] || {
+  echo "smoke-test launcher is not executable" >&2
+  exit 1
+}
+
+echo "==> pi-harness passthrough"
+./bin/pi-harness typecheck >/dev/null
+
+echo "==> Command mirrors"
+for name in office-hours plan-eng-review review-readiness ship retro learn; do
+  [[ "$(<".claude/commands/${name}.md")" == "$(<".codex/commands/${name}.md")" ]] || {
+    echo "command definitions diverged: $name" >&2
+    exit 1
+  }
+done
+
+echo "==> Codex launcher"
+if command -v codex >/dev/null 2>&1; then
+  ./bin/codex-harness --help >/dev/null
+else
+  echo "codex not installed; skipping codex launcher check"
+fi
+
+echo "Smoke checks passed."

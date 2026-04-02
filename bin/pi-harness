@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/bin/zsh
 set -euo pipefail
 
 ROOT="${0:A:h:h}"
@@ -6,27 +6,58 @@ cd "$ROOT"
 
 mode="${1-}"
 
+if [[ ! -x "${SHELL:-}" ]]; then
+  export SHELL=/bin/zsh
+fi
+
+resolve_bin() {
+  local name="$1"
+  shift
+
+  if [[ -n "${commands[$name]-}" ]]; then
+    echo "${commands[$name]}"
+    return 0
+  fi
+
+  local candidate
+  for candidate in "$@"; do
+    if [[ -x "$candidate" ]]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+
+  echo "$name not found on PATH" >&2
+  exit 127
+}
+
+PI_BIN="$(resolve_bin pi /Users/aconte/.nvm/versions/node/v22.19.0/bin/pi /opt/homebrew/bin/pi /usr/local/bin/pi)"
+BUN_BIN="$(resolve_bin bun /Users/aconte/.bun/bin/bun /opt/homebrew/bin/bun /usr/local/bin/bun)"
+
 case "$mode" in
   "" )
-    exec just harness
+    exec "$PI_BIN" --no-extensions -e extensions/damage-control.ts -e extensions/purpose-gate.ts -e extensions/agent-team.ts -e extensions/tilldone.ts
+    ;;
+  smoke )
+    exec "$ROOT/bin/smoke-test"
     ;;
   full )
-    exec just harness-full
+    exec "$PI_BIN" --no-extensions -e extensions/cross-agent.ts -e extensions/damage-control.ts -e extensions/purpose-gate.ts -e extensions/agent-team.ts -e extensions/system-select.ts -e extensions/tilldone.ts -e extensions/theme-cycler.ts
     ;;
   chain )
-    exec just harness-chain
+    exec "$PI_BIN" --no-extensions -e extensions/damage-control.ts -e extensions/purpose-gate.ts -e extensions/agent-chain.ts -e extensions/tilldone.ts
     ;;
   chain-full )
-    exec just harness-chain-full
+    exec "$PI_BIN" --no-extensions -e extensions/cross-agent.ts -e extensions/damage-control.ts -e extensions/purpose-gate.ts -e extensions/agent-chain.ts -e extensions/system-select.ts -e extensions/tilldone.ts -e extensions/theme-cycler.ts
     ;;
   pi )
-    exec just pi
+    exec "$PI_BIN" --no-extensions
     ;;
   typecheck )
-    exec just typecheck
+    exec "$BUN_BIN" x tsc --noEmit
     ;;
   * )
-    echo "usage: pi-harness [full|chain|chain-full|pi|typecheck]" >&2
+    echo "usage: pi-harness [smoke|full|chain|chain-full|pi|typecheck]" >&2
     exit 1
     ;;
 esac
