@@ -35,6 +35,7 @@ Workspace config:
 - `.pi/themes/` — 11 bundled themes
 - `.pi/workflows/` — shared planning, release, and retro artifacts
 - `.pi/memory/` — durable project memory and learnings
+- `docs/` — company and domain context for agents
 
 ## Prerequisites
 
