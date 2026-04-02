@@ -55,6 +55,44 @@ function displayName(name: string): string {
 	return name.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
 
+function compactDisplayName(name: string, max: number): string {
+	const full = displayName(name);
+	if (full.length <= max) return full;
+
+	const truncate = (s: string, limit: number) =>
+		s.length > limit ? s.slice(0, Math.max(1, limit - 3)) + "..." : s;
+	const words = full.split(" ");
+
+	if (words.length === 1 || max < 8) {
+		return truncate(full, max);
+	}
+
+	if (words.length === 2) {
+		const secondBudget = Math.max(3, Math.floor((max - 1) * 0.45));
+		const firstBudget = Math.max(3, max - 1 - secondBudget);
+		return `${truncate(words[0], firstBudget)} ${truncate(words[1], secondBudget)}`;
+	}
+
+	const firstBudget = Math.max(4, Math.floor((max - 1) * 0.65));
+	const secondWord = words[1].length > 3 ? words[1] : (words[2] || words[1]);
+	const secondBudget = Math.max(2, max - 1 - firstBudget);
+	return `${truncate(words[0], firstBudget)} ${truncate(secondWord, secondBudget)}`;
+}
+
+function agentNameColor(name: string): string {
+	if (name === "red-team") return "error";
+	if (name === "builder" || name.endsWith("-engineer")) return "warning";
+	if (name === "reviewer" || name === "tester" || name === "scout") return "success";
+	return "accent";
+}
+
+function contextColor(pct: number): string {
+	if (pct >= 85) return "error";
+	if (pct >= 65) return "warning";
+	if (pct >= 35) return "accent";
+	return "success";
+}
+
 // ── Teams YAML Parser ────────────────────────────
 
 function parseTeamsYaml(raw: string): Record<string, string[]> {
@@ -276,7 +314,6 @@ export default function (pi: ExtensionAPI) {
 
 	function renderCard(state: AgentState, colWidth: number, theme: any): string[] {
 		const w = Math.max(12, colWidth);
-		const truncate = (s: string, max: number) => s.length > max ? s.slice(0, max - 3) + "..." : s;
 		const center = (content: string, visible: number) => {
 			const free = Math.max(0, w - visible);
 			const left = Math.floor(free / 2);
@@ -284,25 +321,24 @@ export default function (pi: ExtensionAPI) {
 			return " ".repeat(left) + content + " ".repeat(right);
 		};
 
-		const statusColor = state.status === "idle" ? "dim"
+		const statusColor = state.status === "idle" ? "warning"
 			: state.status === "running" ? "accent"
 			: state.status === "done" ? "success" : "error";
 		const statusIcon = state.status === "idle" ? "○"
 			: state.status === "running" ? "●"
 			: state.status === "done" ? "✓" : "✗";
 
-		const name = displayName(state.def.name);
-		const shortName = truncate(name, w);
-		const nameStr = theme.fg("accent", theme.bold(shortName));
+		const shortName = compactDisplayName(state.def.name, w);
+		const nameStr = theme.fg(agentNameColor(state.def.name), theme.bold(shortName));
 		const nameVisible = Math.min(shortName.length, w);
 
 		const statusStr = `${statusIcon} ${state.status}`;
 		const timeStr = state.status !== "idle" ? ` ${Math.round(state.elapsed / 1000)}s` : "";
-		const statusLine = theme.fg(statusColor, statusStr) + theme.fg("dim", timeStr);
+		const statusLine = theme.fg(statusColor, theme.bold(statusStr)) + theme.fg("muted", timeStr);
 		const statusVisible = statusStr.length + timeStr.length;
 
 		const pctStr = `${Math.ceil(state.contextPct)}%`;
-		const pctLine = theme.fg("dim", pctStr);
+		const pctLine = theme.fg(contextColor(state.contextPct), theme.bold(pctStr));
 		const pctVisible = pctStr.length;
 
 		return [
@@ -325,29 +361,36 @@ export default function (pi: ExtensionAPI) {
 						return text.render(width);
 					}
 
-					const cols = Math.min(gridCols, agentStates.size);
-					const gap = 1;
-					const colWidth = Math.floor((width - gap * (cols - 1)) / cols);
 					const agents = Array.from(agentStates.values());
-					const rows: string[][] = [];
+					const running = agents.filter(agent => agent.status === "running");
 
-					for (let i = 0; i < agents.length; i += cols) {
-						const rowAgents = agents.slice(i, i + cols);
-						const cards = rowAgents.map(a => renderCard(a, colWidth, theme));
-						const blankCard = Array(cards[0]?.length || 1).fill(" ".repeat(colWidth));
-
-						while (cards.length < cols) {
-							cards.push(blankCard);
-						}
-
-						const cardHeight = cards[0].length;
-						for (let line = 0; line < cardHeight; line++) {
-							rows.push(cards.map(card => card[line] || ""));
-						}
+					if (running.length > 0) {
+						const active = running[0];
+						const cardWidth = Math.min(Math.max(18, width), 28);
+						text.setText(renderCard(active, cardWidth, theme).join("\n"));
+						return text.render(width);
 					}
 
-					const output = rows.map(cols => cols.join(" ".repeat(gap)));
-					text.setText(output.join("\n"));
+					const counts = {
+						idle: agents.filter(agent => agent.status === "idle").length,
+						done: agents.filter(agent => agent.status === "done").length,
+						error: agents.filter(agent => agent.status === "error").length,
+					};
+					const summaryParts = [
+						theme.fg("accent", theme.bold(activeTeamName)),
+						theme.fg("muted", `${agents.length} agents`),
+					];
+					if (counts.error > 0) {
+						summaryParts.push(theme.fg("error", `${counts.error} error`));
+					}
+					if (counts.done > 0) {
+						summaryParts.push(theme.fg("success", `${counts.done} done`));
+					}
+					if (counts.idle > 0) {
+						summaryParts.push(theme.fg("warning", `${counts.idle} idle`));
+					}
+
+					text.setText(summaryParts.join(theme.fg("dim", " · ")));
 					return text.render(width);
 				},
 				invalidate() {
