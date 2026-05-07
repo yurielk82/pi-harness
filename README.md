@@ -64,6 +64,12 @@ just harness
 When `pi-harness` is linked on your `PATH`, run it from the project you want
 to work on. The current working directory remains the target project; this
 repo only supplies the harness extensions, teams, chains, and safety rules.
+Pi CLI options can be passed through, for example:
+
+```bash
+pi-harness --provider openai --model gpt-4o
+pi-harness chain --provider anthropic --model claude-sonnet-4-5
+```
 
 Lean dispatcher harness:
 

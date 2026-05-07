@@ -3,7 +3,13 @@ set -euo pipefail
 
 ROOT="${0:A:h:h}"
 
-mode="${1-}"
+mode=""
+case "${1-}" in
+  smoke|full|chain|chain-full|pi|typecheck)
+    mode="$1"
+    shift
+    ;;
+esac
 
 if [[ ! -x "${SHELL:-}" ]]; then
   export SHELL=/bin/zsh
@@ -37,29 +43,29 @@ export PI_HARNESS_ROOT="$ROOT"
 
 case "$mode" in
   "" )
-    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-team.ts" -e "$ROOT/extensions/tilldone.ts"
+    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-team.ts" -e "$ROOT/extensions/tilldone.ts" "$@"
     ;;
   smoke )
     exec "$ROOT/bin/smoke-test"
     ;;
   full )
-    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/cross-agent.ts" -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-team.ts" -e "$ROOT/extensions/system-select.ts" -e "$ROOT/extensions/tilldone.ts" -e "$ROOT/extensions/theme-cycler.ts"
+    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/cross-agent.ts" -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-team.ts" -e "$ROOT/extensions/system-select.ts" -e "$ROOT/extensions/tilldone.ts" -e "$ROOT/extensions/theme-cycler.ts" "$@"
     ;;
   chain )
-    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-chain.ts" -e "$ROOT/extensions/tilldone.ts"
+    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-chain.ts" -e "$ROOT/extensions/tilldone.ts" "$@"
     ;;
   chain-full )
-    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/cross-agent.ts" -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-chain.ts" -e "$ROOT/extensions/system-select.ts" -e "$ROOT/extensions/tilldone.ts" -e "$ROOT/extensions/theme-cycler.ts"
+    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/cross-agent.ts" -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-chain.ts" -e "$ROOT/extensions/system-select.ts" -e "$ROOT/extensions/tilldone.ts" -e "$ROOT/extensions/theme-cycler.ts" "$@"
     ;;
   pi )
-    exec "$PI_BIN" --no-extensions
+    exec "$PI_BIN" --no-extensions "$@"
     ;;
   typecheck )
     cd "$ROOT"
     exec "$BUN_BIN" x tsc --noEmit
     ;;
   * )
-    echo "usage: pi-harness [smoke|full|chain|chain-full|pi|typecheck]" >&2
+    echo "usage: pi-harness [smoke|full|chain|chain-full|pi|typecheck] [pi-options...]" >&2
     exit 1
     ;;
 esac
