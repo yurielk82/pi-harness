@@ -11,7 +11,7 @@
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
-import { join, basename } from "node:path";
+import { join, basename, resolve } from "node:path";
 import { homedir } from "node:os";
 import { applyExtensionDefaults } from "./themeMap.ts";
 import { wrapTextWithAnsi, visibleWidth } from "@mariozechner/pi-tui";
@@ -152,12 +152,14 @@ export default function (pi: ExtensionAPI) {
 	//
 	const home = homedir();
 	const cwd = process.cwd();
+	const harnessRoot = process.env.PI_HARNESS_ROOT ? resolve(process.env.PI_HARNESS_ROOT) : cwd;
 	const providers = ["agents", "claude"];
 	const groups: SourceGroup[] = [];
 
 	for (const p of providers) {
 		for (const [dir, label] of [
 			[join(cwd, `.${p}`), `.${p}`],
+			[join(harnessRoot, `.${p}`), `harness .${p}`],
 			[join(home, `.${p}`), `~/.${p}`],
 		] as const) {
 			const commands = scanCommands(join(dir, "commands"));
@@ -174,6 +176,10 @@ export default function (pi: ExtensionAPI) {
 	const localAgents = scanAgents(join(cwd, ".pi", "agents"));
 	if (localAgents.length) {
 		groups.push({ source: ".pi/agents", commands: [], skills: [], agents: localAgents });
+	}
+	const harnessAgents = harnessRoot === cwd ? [] : scanAgents(join(harnessRoot, ".pi", "agents"));
+	if (harnessAgents.length) {
+		groups.push({ source: "harness .pi/agents", commands: [], skills: [], agents: harnessAgents });
 	}
 
 	// Register commands + skills once — never re-registered on /new

@@ -23,6 +23,7 @@ import { Text, type AutocompleteItem, truncateToWidth, visibleWidth } from "@mar
 import { spawn } from "child_process";
 import { readdirSync, readFileSync, existsSync, mkdirSync, unlinkSync } from "fs";
 import { join, resolve } from "path";
+import { homedir } from "os";
 import { applyExtensionDefaults } from "./themeMap.ts";
 
 // ── Types ────────────────────────────────────────
@@ -144,12 +145,28 @@ function parseAgentFile(filePath: string): AgentDef | null {
 	}
 }
 
-function scanAgentDirs(cwd: string): AgentDef[] {
+function getHarnessRoot(cwd: string): string {
+	return process.env.PI_HARNESS_ROOT ? resolve(process.env.PI_HARNESS_ROOT) : cwd;
+}
+
+function getSessionDir(cwd: string): string {
+	const base = process.env.PI_HARNESS_SESSION_DIR || join(homedir(), ".pi", "agent", "pi-harness-sessions");
+	return join(base, Buffer.from(cwd).toString("base64url"));
+}
+
+function scanAgentDirs(cwd: string, harnessRoot: string): AgentDef[] {
 	const dirs = [
 		join(cwd, "agents"),
 		join(cwd, ".claude", "agents"),
 		join(cwd, ".pi", "agents"),
 	];
+
+	if (harnessRoot !== cwd) {
+		dirs.push(
+			join(harnessRoot, "agents"),
+			join(harnessRoot, ".pi", "agents"),
+		);
+	}
 
 	const agents: AgentDef[] = [];
 	const seen = new Set<string>();
@@ -190,23 +207,33 @@ export default function (pi: ExtensionAPI) {
 	}
 
 	function getSafetyExtension(cwd: string): string | null {
-		const safetyExt = resolve(cwd, "extensions", "damage-control.ts");
-		return existsSync(safetyExt) ? safetyExt : null;
+		const harnessRoot = getHarnessRoot(cwd);
+		for (const safetyExt of [
+			resolve(cwd, "extensions", "damage-control.ts"),
+			resolve(harnessRoot, "extensions", "damage-control.ts"),
+		]) {
+			if (existsSync(safetyExt)) return safetyExt;
+		}
+		return null;
 	}
 
 	function loadAgents(cwd: string) {
+		const harnessRoot = getHarnessRoot(cwd);
 		// Create session storage dir
-		sessionDir = join(cwd, ".pi", "agent-sessions");
+		sessionDir = getSessionDir(cwd);
 		if (!existsSync(sessionDir)) {
 			mkdirSync(sessionDir, { recursive: true });
 		}
 
 		// Load all agent definitions
-		allAgentDefs = scanAgentDirs(cwd);
+		allAgentDefs = scanAgentDirs(cwd, harnessRoot);
 
 		// Load teams from .pi/agents/teams.yaml
-		const teamsPath = join(cwd, ".pi", "agents", "teams.yaml");
-		if (existsSync(teamsPath)) {
+		const teamsPath = [
+			join(cwd, ".pi", "agents", "teams.yaml"),
+			join(harnessRoot, ".pi", "agents", "teams.yaml"),
+		].find(existsSync);
+		if (teamsPath) {
 			try {
 				teams = parseTeamsYaml(readFileSync(teamsPath, "utf-8"));
 			} catch {

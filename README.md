@@ -61,6 +61,10 @@ just harness
 
 ## Launch Modes
 
+When `pi-harness` is linked on your `PATH`, run it from the project you want
+to work on. The current working directory remains the target project; this
+repo only supplies the harness extensions, teams, chains, and safety rules.
+
 Lean dispatcher harness:
 
 ```bash

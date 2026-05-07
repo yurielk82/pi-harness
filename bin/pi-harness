@@ -2,7 +2,6 @@
 set -euo pipefail
 
 ROOT="${0:A:h:h}"
-cd "$ROOT"
 
 mode="${1-}"
 
@@ -34,26 +33,29 @@ resolve_bin() {
 PI_BIN="$(resolve_bin pi /Users/aconte/.nvm/versions/node/v22.19.0/bin/pi /opt/homebrew/bin/pi /usr/local/bin/pi)"
 BUN_BIN="$(resolve_bin bun /Users/aconte/.bun/bin/bun /opt/homebrew/bin/bun /usr/local/bin/bun)"
 
+export PI_HARNESS_ROOT="$ROOT"
+
 case "$mode" in
   "" )
-    exec "$PI_BIN" --no-extensions -e extensions/damage-control.ts -e extensions/purpose-gate.ts -e extensions/agent-team.ts -e extensions/tilldone.ts
+    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-team.ts" -e "$ROOT/extensions/tilldone.ts"
     ;;
   smoke )
     exec "$ROOT/bin/smoke-test"
     ;;
   full )
-    exec "$PI_BIN" --no-extensions -e extensions/cross-agent.ts -e extensions/damage-control.ts -e extensions/purpose-gate.ts -e extensions/agent-team.ts -e extensions/system-select.ts -e extensions/tilldone.ts -e extensions/theme-cycler.ts
+    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/cross-agent.ts" -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-team.ts" -e "$ROOT/extensions/system-select.ts" -e "$ROOT/extensions/tilldone.ts" -e "$ROOT/extensions/theme-cycler.ts"
     ;;
   chain )
-    exec "$PI_BIN" --no-extensions -e extensions/damage-control.ts -e extensions/purpose-gate.ts -e extensions/agent-chain.ts -e extensions/tilldone.ts
+    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-chain.ts" -e "$ROOT/extensions/tilldone.ts"
     ;;
   chain-full )
-    exec "$PI_BIN" --no-extensions -e extensions/cross-agent.ts -e extensions/damage-control.ts -e extensions/purpose-gate.ts -e extensions/agent-chain.ts -e extensions/system-select.ts -e extensions/tilldone.ts -e extensions/theme-cycler.ts
+    exec "$PI_BIN" --no-extensions -e "$ROOT/extensions/cross-agent.ts" -e "$ROOT/extensions/damage-control.ts" -e "$ROOT/extensions/purpose-gate.ts" -e "$ROOT/extensions/agent-chain.ts" -e "$ROOT/extensions/system-select.ts" -e "$ROOT/extensions/tilldone.ts" -e "$ROOT/extensions/theme-cycler.ts"
     ;;
   pi )
     exec "$PI_BIN" --no-extensions
     ;;
   typecheck )
+    cd "$ROOT"
     exec "$BUN_BIN" x tsc --noEmit
     ;;
   * )

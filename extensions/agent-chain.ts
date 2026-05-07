@@ -27,6 +27,7 @@ import { Text, truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
 import { spawn } from "child_process";
 import { readFileSync, existsSync, readdirSync, mkdirSync, unlinkSync } from "fs";
 import { join, resolve } from "path";
+import { homedir } from "os";
 import { applyExtensionDefaults } from "./themeMap.ts";
 
 // ── Types ────────────────────────────────────────
@@ -161,12 +162,28 @@ function parseAgentFile(filePath: string): AgentDef | null {
 	}
 }
 
-function scanAgentDirs(cwd: string): Map<string, AgentDef> {
+function getHarnessRoot(cwd: string): string {
+	return process.env.PI_HARNESS_ROOT ? resolve(process.env.PI_HARNESS_ROOT) : cwd;
+}
+
+function getSessionDir(cwd: string): string {
+	const base = process.env.PI_HARNESS_SESSION_DIR || join(homedir(), ".pi", "agent", "pi-harness-sessions");
+	return join(base, Buffer.from(cwd).toString("base64url"));
+}
+
+function scanAgentDirs(cwd: string, harnessRoot: string): Map<string, AgentDef> {
 	const dirs = [
 		join(cwd, "agents"),
 		join(cwd, ".claude", "agents"),
 		join(cwd, ".pi", "agents"),
 	];
+
+	if (harnessRoot !== cwd) {
+		dirs.push(
+			join(harnessRoot, "agents"),
+			join(harnessRoot, ".pi", "agents"),
+		);
+	}
 
 	const agents = new Map<string, AgentDef>();
 
@@ -202,17 +219,24 @@ export default function (pi: ExtensionAPI) {
 	let pendingReset = false;
 
 	function getSafetyExtension(cwd: string): string | null {
-		const safetyExt = resolve(cwd, "extensions", "damage-control.ts");
-		return existsSync(safetyExt) ? safetyExt : null;
+		const harnessRoot = getHarnessRoot(cwd);
+		for (const safetyExt of [
+			resolve(cwd, "extensions", "damage-control.ts"),
+			resolve(harnessRoot, "extensions", "damage-control.ts"),
+		]) {
+			if (existsSync(safetyExt)) return safetyExt;
+		}
+		return null;
 	}
 
 	function loadChains(cwd: string) {
-		sessionDir = join(cwd, ".pi", "agent-sessions");
+		const harnessRoot = getHarnessRoot(cwd);
+		sessionDir = getSessionDir(cwd);
 		if (!existsSync(sessionDir)) {
 			mkdirSync(sessionDir, { recursive: true });
 		}
 
-		allAgents = scanAgentDirs(cwd);
+		allAgents = scanAgentDirs(cwd, harnessRoot);
 
 		agentSessions.clear();
 		for (const [key] of allAgents) {
@@ -220,8 +244,11 @@ export default function (pi: ExtensionAPI) {
 			agentSessions.set(key, existsSync(sessionFile) ? sessionFile : null);
 		}
 
-		const chainPath = join(cwd, ".pi", "agents", "agent-chain.yaml");
-		if (existsSync(chainPath)) {
+		const chainPath = [
+			join(cwd, ".pi", "agents", "agent-chain.yaml"),
+			join(harnessRoot, ".pi", "agents", "agent-chain.yaml"),
+		].find(existsSync);
+		if (chainPath) {
 			try {
 				chains = parseChainYaml(readFileSync(chainPath, "utf-8"));
 			} catch {

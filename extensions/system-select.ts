@@ -14,7 +14,7 @@
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { readdirSync, readFileSync, existsSync } from "node:fs";
-import { join, basename } from "node:path";
+import { join, basename, resolve } from "node:path";
 import { homedir } from "node:os";
 import { applyExtensionDefaults } from "./themeMap.ts";
 
@@ -73,12 +73,17 @@ export default function (pi: ExtensionAPI) {
 
 		const home = homedir();
 		const cwd = ctx.cwd;
+		const harnessRoot = process.env.PI_HARNESS_ROOT ? resolve(process.env.PI_HARNESS_ROOT) : cwd;
 
 		const dirs: [string, string][] = [
 			[join(cwd, ".pi", "agents"), ".pi"],
 			[join(cwd, ".agents", "agents"), ".agents"],
 			[join(cwd, ".claude", "agents"), ".claude"],
 			[join(cwd, ".codex", "agents"), ".codex"],
+			[join(harnessRoot, ".pi", "agents"), "harness .pi"],
+			[join(harnessRoot, ".agents", "agents"), "harness .agents"],
+			[join(harnessRoot, ".claude", "agents"), "harness .claude"],
+			[join(harnessRoot, ".codex", "agents"), "harness .codex"],
 			[join(home, ".pi", "agent", "agents"), "~/.pi"],
 			[join(home, ".agents", "agents"), "~/.agents"],
 			[join(home, ".claude", "agents"), "~/.claude"],

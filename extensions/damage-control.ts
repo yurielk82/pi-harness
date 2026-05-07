@@ -34,6 +34,10 @@ export default function (pi: ExtensionAPI) {
 		return path.resolve(cwd, p);
 	}
 
+	function getHarnessRoot(cwd: string): string {
+		return process.env.PI_HARNESS_ROOT ? path.resolve(process.env.PI_HARNESS_ROOT) : cwd;
+	}
+
 	function isPathMatch(targetPath: string, pattern: string, cwd: string): boolean {
 		// Simple glob-to-regex or substring match
 		// Expand tilde in pattern if present
@@ -61,8 +65,9 @@ export default function (pi: ExtensionAPI) {
 	pi.on("session_start", async (_event, ctx) => {
 		applyExtensionDefaults(import.meta.url, ctx);
 		const projectRulesPath = path.join(ctx.cwd, ".pi", "damage-control-rules.yaml");
+		const harnessRulesPath = path.join(getHarnessRoot(ctx.cwd), ".pi", "damage-control-rules.yaml");
 		const globalRulesPath = path.join(os.homedir(), ".pi", "damage-control-rules.yaml");
-		const rulesPath = fs.existsSync(projectRulesPath) ? projectRulesPath : fs.existsSync(globalRulesPath) ? globalRulesPath : null;
+		const rulesPath = fs.existsSync(projectRulesPath) ? projectRulesPath : fs.existsSync(harnessRulesPath) ? harnessRulesPath : fs.existsSync(globalRulesPath) ? globalRulesPath : null;
 		try {
 			if (rulesPath) {
 				const content = fs.readFileSync(rulesPath, "utf8");
@@ -73,7 +78,7 @@ export default function (pi: ExtensionAPI) {
 					readOnlyPaths: loaded.readOnlyPaths || [],
 					noDeletePaths: loaded.noDeletePaths || [],
 				};
-				const source = rulesPath === projectRulesPath ? "project" : "global";
+				const source = rulesPath === projectRulesPath ? "project" : rulesPath === harnessRulesPath ? "harness" : "global";
 				ctx.ui.notify(`🛡️ Damage-Control: Loaded ${rules.bashToolPatterns.length + rules.zeroAccessPaths.length + rules.readOnlyPaths.length + rules.noDeletePaths.length} rules (${source}).`);
 			} else {
 				ctx.ui.notify("🛡️ Damage-Control: No rules found at .pi/damage-control-rules.yaml (project or global)");
