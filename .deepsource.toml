@@ -20,7 +20,3 @@ dependency_file_paths = ["."]
 [[analyzers]]
 name = "test-coverage"
 enabled = true
-
-[[code_formatters]]
-name = "prettier"
-enabled = true
